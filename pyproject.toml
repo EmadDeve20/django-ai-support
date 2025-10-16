@@ -43,3 +43,7 @@ classifiers = [
 Homepage = "https://github.com/EmadDeve20/django-ai-support"
 Issues = "https://github.com/EmadDeve20/django-ai-support/issues"
 
+
+[tool.setuptools]
+packages = ["django_ai_support"]
+
