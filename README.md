@@ -101,5 +101,5 @@ urlpatterns = [
 ]
 ```
 
-
+![swagger](./images/swagger-example.png)
 
