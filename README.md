@@ -86,3 +86,20 @@ class BookConfig(AppConfig):
 
 [read more about tool calling in langchain](https://langchain-ai.github.io/langgraph/how-tos/tool-calling/#dynamically-select-tools)
 
+
+### API
+
+Now, you can use the chat API to talk with your AI support:
+
+```python
+from django.urls import path
+
+from django_ai_support.views import ChatAiSupportApi
+
+urlpatterns = [
+    path("ai/", ChatAiSupportApi.as_view())
+]
+```
+
+
+
