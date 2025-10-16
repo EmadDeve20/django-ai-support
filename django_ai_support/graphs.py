@@ -28,9 +28,6 @@ def chat_node(state:MessagesState):
     return {"messages": response}
 
 
-# TODO: maybe we need update this graph if some tools add or removed
-# by these functions: append_tools, remove_tools
-# check it and if this is true, handle it 
 tool_node = ToolNode(api_settings.TOOLS)
 
 memory = MemorySaver()

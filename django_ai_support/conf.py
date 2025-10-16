@@ -2,9 +2,12 @@ from django.conf import settings
 
 from .settings import update_model_with_tools
 
-def append_tools(*tools):
+def append_tools(tools: list):
     """
     Append the list of tools to the settings and update your model to use these tools.
+
+    Args:
+        tools (list): list of functions
     """
 
     for tool in tools:
@@ -12,9 +15,12 @@ def append_tools(*tools):
     update_model_with_tools()
 
 
-def remove_tools(*tools):
+def remove_tools(tools: list):
     """
     Remove the list of tools from the settings and update your model to use these tools.
+
+    Args:
+        tools (list): list of functions
     """
 
     for tool in tools:
