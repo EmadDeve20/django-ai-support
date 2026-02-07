@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "django-ai-support"
-version = "0.1.9"
+version = "0.1.10"
 
 dependencies = [
     "Django>=4.0",
     "djangorestframework>=3.13.1",
-    "langchain>=1.0.2",
-    "langgraph>=1.0.1",
+    "langchain>=1.2.7",
+    "langgraph>=1.0.7",
     "drf-spectacular>=0.24.2",
 ]
 
