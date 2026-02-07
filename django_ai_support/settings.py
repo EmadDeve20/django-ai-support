@@ -10,6 +10,14 @@ DEFAULTS = {
     "TOOLS": [],
     "SYSTEM_PROMPT": "You are the supporter of a bookstore website.",
     "LLM_MODEL": None,
+    
+    # TODO: add TypeDict to show settings better
+    # "SHORT_TERM_MEMORY": {
+    #     "type": "REDIS", # type can be redis or postgres or mongodb
+    #     "url": "redis://localhost:6379"
+    # }
+    # this is can be None
+    "SHORT_TERM_MEMORY": None
 }
 
 
