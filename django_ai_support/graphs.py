@@ -1,8 +1,14 @@
+import redis
+import psycopg
+
+from psycopg_pool import ConnectionPool
+from pymongo import MongoClient
+
 from langgraph.graph import START, END, MessagesState, StateGraph
 from langgraph.prebuilt import ToolNode, tools_condition
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
-from langgraph.checkpoint.memory import MemorySaver
+from langgraph.checkpoint.memory import MemorySaver, InMemorySaver
 from langgraph.checkpoint.redis import RedisSaver
 from langgraph.checkpoint.postgres import PostgresSaver
 from langgraph.checkpoint.mongodb import MongoDBSaver
@@ -22,86 +28,87 @@ else:
     system_prompt_template = None
 
 
-def init_agent():
+def generate_short_term_memory() -> InMemorySaver | PostgresSaver | RedisSaver | MongoDBSaver:
     """
-    initialize agent
+    generating short term memory
+    
+    :return: return one of MemorySaver object by Django Ai Support Settings
+    :rtype: InMemorySaver | PostgresSaver | RedisSaver | MongoDBSaver
     """
 
-    def chat_node(state:MessagesState):
-        
-        if system_prompt_template:
-            messages = system_prompt_template.invoke(state)
-        else:
-            messages = state["messages"]
+    
+    memory_saver = None
 
-        response = api_settings.LLM_MODEL.invoke(messages)
+    if api_settings.SHORT_TERM_MEMORY:
+        if api_settings.SHORT_TERM_MEMORY["type"].lower() == "redis":
+            redis_url = api_settings.SHORT_TERM_MEMORY["url"]
+            redis_client = redis.Redis.from_url(redis_url, decode_responses=True)
+            memory_saver = RedisSaver(redis_client=redis_client)
+            memory_saver.setup()
 
-        return {"messages": response}
+        elif api_settings.SHORT_TERM_MEMORY["type"].lower() == "postgres":
+            postgres_url = api_settings.SHORT_TERM_MEMORY["url"]
 
+            # TODO: set minimum and maximum in settings and read from there
+            pool = ConnectionPool(
+                conninfo=postgres_url,
+                min_size=5,
+                max_size=20,
+                kwargs={
+                    "autocommit": True,
+                    "row_factory": psycopg.rows.dict_row
+                }
+            )
+            memory_saver = PostgresSaver(conn=pool)
+            memory_saver.setup()
 
-    def short_term_memory_from_settings():
-        
-        memory_saver = None
+        elif api_settings.SHORT_TERM_MEMORY["type"].lower() == "mongodb":
+            mongodb_url = api_settings.SHORT_TERM_MEMORY["url"]
 
-        # TODO: add Validation to check memory saver is None or not
-        if api_settings.SHORT_TERM_MEMORY.type.lower() == "redis":
-            memory_saver = RedisSaver
-        
-        elif api_settings.SHORT_TERM_MEMORY.type.lower() == "postgres":
-            memory_saver = PostgresSaver
-        
-        elif api_settings.SHORT_TERM_MEMORY.type.lower() == "mongodb":
-            memory_saver = MongoDBSaver
-
-        with memory_saver.from_conn_string(api_settings.SHORT_TERM_MEMORY.url) as checkpointer:
-
-            tool_node = ToolNode(api_settings.TOOLS)
-
-            graph = StateGraph(MessagesState)
-            graph.add_node("chat", chat_node)
-            graph.add_node("tools", tool_node)
-
-            graph.add_conditional_edges(
-                "chat",
-                tools_condition
+            # TODO: set minimum and maximum of pool size
+            mongo_client = MongoClient(
+                mongodb_url
             )
 
-            graph.add_edge(START, "chat")
-            graph.add_edge("tools", "chat")
-            graph.add_edge("chat", END)
+            memory_saver = MongoDBSaver(client=mongo_client)
+        
+        else:
+            # TODO: handle exception
+            ...
+    else:
+        memory_saver = MemorySaver()
 
-            compiled_graph = graph.compile(checkpointer=checkpointer)
+    return memory_saver
 
-            return compiled_graph
+
+
+def chat_node(state:MessagesState):
     
+    if system_prompt_template:
+        messages = system_prompt_template.invoke(state)
+    else:
+        messages = state["messages"]
 
-    def default_short_term_memory():
+    response = api_settings.LLM_MODEL.invoke(messages)
 
-        tool_node = ToolNode(api_settings.TOOLS)
-
-        memory = MemorySaver()
-
-        graph = StateGraph(MessagesState)
-        graph.add_node("chat", chat_node)
-        graph.add_node("tools", tool_node)
-
-        graph.add_conditional_edges(
-            "chat",
-            tools_condition
-        )
-
-        graph.add_edge(START, "chat")
-        graph.add_edge("tools", "chat")
-        graph.add_edge("chat", END)
-
-        compiled_graph = graph.compile(checkpointer=memory)
-
-        return compiled_graph
+    return {"messages": response}
 
 
-    if api_settings.SHORT_TERM_MEMORY is None:
-        return default_short_term_memory()
-    
-    return short_term_memory_from_settings()
+tool_node = ToolNode(api_settings.TOOLS)
+
+graph = StateGraph(MessagesState)
+graph.add_node("chat", chat_node)
+graph.add_node("tools", tool_node)
+
+graph.add_conditional_edges(
+    "chat",
+    tools_condition
+)
+
+graph.add_edge(START, "chat")
+graph.add_edge("tools", "chat")
+graph.add_edge("chat", END)
+
+compiled_graph = graph.compile(checkpointer=generate_short_term_memory())
 
 
