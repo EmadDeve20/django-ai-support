@@ -1,14 +1,14 @@
 from typing import TypedDict, Optional, Any, Literal
 
 class ShortTermMemoryOptions(TypedDict, total=False):
-    MIN_POOL_SIZE: Optional[int]
-    MAX_POOL_SIZE: Optional[int]
+    min_pool_size: Optional[int]
+    max_pool_size: Optional[int]
 
 
 class ShortTermMemoryConfig(TypedDict, total=False):
-    TYPE: Literal["redis", "postgres", "mongodb"]
-    URL: str
-    OPTIONS: Optional[ShortTermMemoryOptions]
+    type: Literal["redis", "postgres", "mongodb"]
+    url: str
+    options: Optional[ShortTermMemoryOptions]
 
 
 class AISupportSettings(TypedDict):
