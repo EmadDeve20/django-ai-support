@@ -3,22 +3,23 @@ from django.test.signals import setting_changed
 
 from rest_framework.settings import APISettings
 
+from .types import AISupportSettings
+from .validations import settings_validations
+
 
 USER_SETTINGS = getattr(settings, "AI_SUPPORT_SETTINGS", None)
 
-DEFAULTS = {
+DEFAULTS:AISupportSettings = {
     "TOOLS": [],
     "SYSTEM_PROMPT": "You are the supporter of a bookstore website.",
     "LLM_MODEL": None,
+    "SHORT_TERM_MEMORY": None
 }
 
 
-api_settings = APISettings(USER_SETTINGS, DEFAULTS)
+api_settings = settings_validations(APISettings(USER_SETTINGS, DEFAULTS))
 
 raw_model = api_settings.LLM_MODEL
-
-if not api_settings.LLM_MODEL:
-    raise ValueError("LLM_MODEL can not be None")
 
 
 def update_model_with_tools():
