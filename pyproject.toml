@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "django-ai-support"
-version = "0.1.10"
+version = "0.1.11"
 
 dependencies = [
     "Django>=4.0",
@@ -12,6 +12,15 @@ dependencies = [
     "langchain>=1.2.7",
     "langgraph>=1.0.7",
     "drf-spectacular>=0.24.2",
+
+    "langgraph-checkpoint-redis==0.3.4",
+    "langgraph-checkpoint-mongodb==0.3.1",
+    "langgraph-checkpoint-postgres==3.0.4",
+
+    "psycopg==3.3.2",
+    "psycopg-binary==3.3.2",
+    "psycopg-pool==3.3.0",
+    "psycopg2-binary==2.9.5",
 ]
 
 description = "AI support for your django app."
