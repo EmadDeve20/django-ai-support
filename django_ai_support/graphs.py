@@ -49,11 +49,13 @@ def generate_short_term_memory() -> InMemorySaver | PostgresSaver | RedisSaver |
         elif api_settings.SHORT_TERM_MEMORY["type"].lower() == "postgres":
             postgres_url = api_settings.SHORT_TERM_MEMORY["url"]
 
-            # TODO: set minimum and maximum in settings and read from there
+            min_pool_size = api_settings.SHORT_TERM_MEMORY["options"]["min_pool_size"] or 5
+            max_pool_size = api_settings.SHORT_TERM_MEMORY["options"]["max_pool_size"] or 20
+
             pool = ConnectionPool(
                 conninfo=postgres_url,
-                min_size=5,
-                max_size=20,
+                min_size=min_pool_size,
+                max_size=max_pool_size,
                 kwargs={
                     "autocommit": True,
                     "row_factory": psycopg.rows.dict_row
